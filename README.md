@@ -71,33 +71,53 @@ The deployment creates a distributed system with four specialized instances:
 
 - Terraform >= 0.14.0
 - Ansible
-- OpenStack credentials
-- SSH key pair (placed in ./ansible/id_ed25519)
+- OpenStack credentials and access
+- SSH key pair (to be placed in ./terraform-openstack/ansible/id_ed25519)
 - GitHub account for SSH key import
+- Basic understanding of OpenStack concepts
+- Properly configured OpenStack environment variables
 
 ## Project Structure
 
 ```
 .
 ├── terraform-openstack/
-│   ├── modules/
-│   │   ├── compute/     # Instance creation
-│   │   └── network/     # Network infrastructure
-│   ├── ansible/         # Configuration management
-│   ├── templates/       # Template files
-│   ├── variables.tf     # Variable definitions
-│   ├── terraform.tfvars # Variable values
-│   └── main.tf         # Main Terraform configuration
-└── vmcreator.sh        # Deployment script
+│   ├── ansible/         # Ansible playbooks and configuration
+│   ├── modules/        # Terraform modules
+│   │   ├── compute/    # Instance creation
+│   │   └── network/    # Network infrastructure
+│   ├── templates/      # Configuration templates
+│   ├── cloud-init.yml  # Cloud-init configuration
+│   ├── main.tf        # Main Terraform configuration
+│   ├── variables.tf    # Variable definitions
+│   └── terraform.tfvars # Variable values
+├── .cloudrc.example    # Example OpenStack RC file
+├── vmcreator.sh       # Deployment script
+└── README.md          # This file
 ```
 
 ## Security Groups
 
-The infrastructure includes several security groups:
-- Backend SG (Redis & MariaDB): Allows internal access on ports 6379 and 3306
-- Nginx SG: Allows public access on port 80
-- CTFd SG: Allows access on port 8000
-- Common rules for SSH (port 22) and ICMP
+The infrastructure includes the following security groups:
+
+- **Backend Security Group (Redis & MariaDB)**:
+  - Internal access on port 6379 (Redis)
+  - Internal access on port 3306 (MariaDB)
+  - Limited to internal network communication
+
+- **Nginx Security Group**:
+  - Public access on port 80 (HTTP)
+  - Public access on port 443 (HTTPS) - prepared for SSL/TLS
+  - Acts as the main entry point for web traffic
+
+- **CTFd Security Group**:
+  - Internal access on port 8000 (CTFd application)
+  - Communication restricted to Nginx proxy
+
+- **Common Security Rules**:
+  - SSH access on port 22 (configurable)
+  - ICMP for network diagnostics
+  - All instances include basic security measures
 
 ## Quick Start
 
@@ -151,4 +171,3 @@ To get the CTFd website IP:
 - Cloud-init is used for initial instance setup
 - Ansible runs automatically after infrastructure creation
 - There's a 30-second delay after instance creation to ensure full boot
-
