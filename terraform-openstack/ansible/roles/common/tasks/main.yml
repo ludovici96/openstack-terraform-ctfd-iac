@@ -1,0 +1,22 @@
+---
+# tasks file for roles/common
+
+- name: Wait for apt lock to be released
+  become: true
+  ansible.builtin.command: lsof /var/lib/dpkg/lock-frontend
+  register: result
+  until: result.rc != 0
+  retries: 10
+  delay: 10
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  become: true
+
+- name: Install common packages
+  ansible.builtin.apt:
+    name:
+      - acl
+    state: present
+  become: true

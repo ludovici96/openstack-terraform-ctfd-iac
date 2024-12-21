@@ -1,0 +1,99 @@
+---
+# tasks file for roles/mariadb
+
+- name: Update cache and install Python and MariaDB dependencies
+  apt:
+    name:
+      - python3-pymysql
+      - libmariadb-dev
+      - python3-pip
+      - mariadb-server
+    update_cache: yes
+    state: present
+  become: true
+  # retries until cloud-init is done downloading docker
+  register: result  # Registering the output to a variable
+  until: result is not failed  # Continue until the task does not fail
+  retries: 50  # Retry up to 50 times
+  delay: 5  # Wait for 5 seconds between retries
+
+- name: Install PyMySQL via pip
+  pip:
+    name: PyMySQL
+    state: present
+  become: true
+
+- name: Ensure MariaDB is running and enabled on boot
+  service:
+    name: mariadb
+    state: started
+    enabled: yes
+  become: true
+
+- name: Secure installation of MariaDB
+  block:
+    - name: Change root password in MariaDB
+      mysql_user:
+        login_user: root
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        user: root
+        password: "{{ mysql_root_password }}"
+        host_all: yes
+        state: present
+      become: true
+      become_user: root
+
+    - name: Remove anonymous users
+      mysql_user:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        user: ''
+        host_all: yes
+        state: absent
+
+    - name: Remove test database
+      mysql_db:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        name: test
+        state: absent
+
+- name: Ensure MariaDB listens on all network interfaces
+  lineinfile:
+    path: /etc/mysql/mariadb.conf.d/50-server.cnf
+    regexp: '^bind-address'
+    line: "bind-address = 0.0.0.0"
+    state: present
+  become: true
+  notify: restart mariadb
+
+- name: Create CTFd database and user
+  block:
+    - name: Create CTFd database for MariaDB
+      mysql_db:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        name: ctfd
+        state: present
+
+    - name: Create CTFd user for MariaDB
+      mysql_user:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        user: ctfd
+        password: "{{ ctfd_db_password }}"
+        priv: 'ctfd.*:ALL'
+        state: present
+
+    - name: Grant ctfd user remote access
+      mysql_user:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        user: ctfd
+        password: "{{ ctfd_db_password }}"
+        host: '%'  # so we can login from remote hosts
+        priv: 'ctfd.*:ALL'
+        state: present
+      become: true
+      notify: restart mariadb
+  become: true

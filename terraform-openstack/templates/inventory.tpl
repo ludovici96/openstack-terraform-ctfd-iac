@@ -1,0 +1,15 @@
+---
+all:
+  children:
+    redis:
+      hosts:
+        ${redis_ip}:
+    db:
+      hosts:
+        ${db_ip}:
+    ctfd:
+      hosts:
+        ${ctfd_ip}:
+    nginx:
+      hosts:
+        ${nginx_ip}:
