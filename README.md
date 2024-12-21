@@ -15,6 +15,20 @@ users:
 
 Also update the `terraform.tfvars` file with your openstack credentials so that terraform can create the virtual machines.
 
+```
+OS_USERNAME="openstack username"
+OS_PROJECT_NAME="openstack project name"
+OS_PASSWORD="openstack passwords"
+OS_USER_DOMAIN_NAME="Default"
+OS_PROJECT_DOMAIN_NAME="Default"
+OS_AUTH_URL="http:// url here :5000/v3"
+OS_IDENTITY_API_VERSION="3"
+external_network_id="external network id here"
+small_flavor_id="flavor id if you have"
+medium_flavor_id="flavor id if you have"
+image_id="image id if you have"
+```
+
 # Infrastructure As Code - CTFd Platform Deployment
 
 This project implements Infrastructure as Code (IaC) to automatically deploy a CTFd platform with supporting services on OpenStack. It uses Terraform for infrastructure provisioning and Ansible for configuration management.
