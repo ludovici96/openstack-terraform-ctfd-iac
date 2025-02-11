@@ -1,0 +1,21 @@
+---
+- hosts: redis
+  become: true
+  roles:
+    - redis
+    
+- hosts: db
+  become: true
+  roles:
+    - mariadb
+
+- hosts: ctfd
+  become: true
+  roles:
+    - ctfd
+
+- hosts: nginx
+  become: true
+  roles:
+    - nginx
+

@@ -1,0 +1,11 @@
+variable "OS_USERNAME" {}
+variable "OS_PROJECT_NAME" {}
+variable "OS_PASSWORD" {}
+variable "OS_AUTH_URL" {}
+variable "OS_USER_DOMAIN_NAME" {}
+variable "OS_PROJECT_DOMAIN_NAME" {}
+variable "OS_IDENTITY_API_VERSION" {}
+variable "external_network_id" {}
+variable "image_id" {}
+variable "small_flavor_id" {}
+variable "medium_flavor_id" {}

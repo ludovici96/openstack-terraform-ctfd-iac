@@ -1,0 +1,46 @@
+#cloud-config
+
+# making it retry 5 times to download the docker gpg key, due to some weird bug where one instance always fails to get it.
+bootcmd:
+  - until ping -c1 8.8.8.8; do sleep 1; done  # Ensures the network is ready
+  - mkdir -p /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - chmod a+r /etc/apt/keyrings/docker.asc
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+
+
+package_update: true
+#package_upgrade: true
+
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg-agent
+  - software-properties-common
+  - lsb-release
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+
+write_files:
+- path: /etc/docker/daemon.json
+  content: |
+    {
+      "mtu": 1442
+    }
+
+runcmd:
+  - systemctl restart docker
+  - systemctl enable docker.service
+  - systemctl enable containerd.service
+
+# Import SSH keys from your GitHub
+users:
+  - name: ubuntu
+    shell: /bin/bash
+    groups: [sudo]
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_import_id:
+      - gh: YOUR_GITHUB_USERNAME
+    lock_passwd: true

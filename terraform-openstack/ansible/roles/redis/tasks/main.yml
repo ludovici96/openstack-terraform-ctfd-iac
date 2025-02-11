@@ -1,0 +1,33 @@
+---
+# tasks file for roles/redis
+
+# waits until cloud-init is done downloading docker
+- name: Install Redis Server
+  ansible.builtin.apt:
+    name: redis-server
+    state: latest
+    update_cache: yes
+  become: true
+  # retries until cloud-init is done downloading docker
+  register: result  # Registering the output to a variable
+  until: result is not failed  # Continue until the task does not fail
+  retries: 50  # Retry up to 50 times
+  delay: 5  # Wait for 5 seconds between retries
+
+
+- name: Update Redis Configuration to bind to the correct interface
+  ansible.builtin.lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: '^bind 127.0.0.1 ::1'
+    line: "bind {{ ctfd_redis_host }}"
+    state: present
+  notify:
+    - restart redis
+  become: true
+
+- name: Ensure Redis is running and enabled on boot
+  ansible.builtin.service:
+    name: redis-server
+    state: started
+    enabled: yes
+  become: true
